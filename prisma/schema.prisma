@@ -1,0 +1,195 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics", "tracing", "interactiveTransactions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  professor
+  student
+}
+
+enum Grades {
+  A
+  B
+  C
+  D
+  E
+  F
+}
+
+enum SemesterCourse {
+  spring
+  summer
+  autumn
+  winter
+}
+
+enum SemesterStudent {
+  one
+  two
+  three
+  four
+  five
+  six
+}
+
+enum Status {
+  active
+  inActive
+}
+
+enum ProfType {
+  Professor
+  Assisstant
+}
+
+model Admin {
+  id         String    @id @default(uuid())
+  firstName  String
+  lastName   String
+  email      String    @unique
+  password   String
+  session    Session[]
+  deleted    Boolean   @default(false)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+}
+
+model Professor {
+  id           String         @id @default(uuid())
+  slug         Int            @default(autoincrement())
+  firstName    String?
+  lastName     String?
+  email        String?        @unique
+  phone        String?        @unique
+  password     String?
+  faculty_id   String?
+  faculty      Faculty?       @relation(fields: [faculty_id], references: [id])
+  courses      Course[]
+  exams        Exam[]
+  type         ProfType?
+  session      Session[]
+  role         Role           @default(professor)
+  status       Status         @default(active)
+  deleted      Boolean        @default(false)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  AttendedExam AttendedExam[]
+}
+
+model Student {
+  id            String          @id @default(uuid())
+  slug          Int             @default(autoincrement())
+  firstName     String?
+  lastName      String?
+  email         String?         @unique
+  phone         String?         @unique
+  password      String?
+  faculty_id    String?
+  faculty       Faculty?        @relation(fields: [faculty_id], references: [id])
+  department_id String?
+  department    Department?     @relation(fields: [department_id], references: [id])
+  courses       Course[]
+  ects          Int?            @default(0)
+  year          Int             @default(1)
+  semester      SemesterStudent @default(one)
+  attendedExam  AttendedExam[]
+  session       Session[]
+  role          Role            @default(student)
+  status        Boolean         @default(true)
+  deleted       Boolean         @default(false)
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+}
+
+model Course {
+  id           String         @id @default(uuid())
+  name         String         @unique
+  semester     SemesterCourse
+  ects         Int
+  professor_id String
+  professor    Professor      @relation(fields: [professor_id], references: [id])
+  student      Student[]
+  media        Media[]
+  exam         Exam[]
+  attendedExam AttendedExam[]
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+}
+
+model Media {
+  id         String   @id @default(uuid())
+  url        String
+  course     Course?  @relation(fields: [courseId], references: [id])
+  courseId   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Faculty {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  department Department[]
+  professor  Professor[]
+  student    Student[]
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+}
+
+model Department {
+  id         String    @id @default(uuid())
+  name       String    @unique
+  faculty_id String
+  faculty    Faculty   @relation(fields: [faculty_id], references: [id])
+  student    Student[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+}
+
+model Session {
+  id           String     @id @default(uuid())
+  location     Json?
+  student      Student?   @relation(fields: [studentId], references: [id])
+  studentId    String?
+  professor    Professor? @relation(fields: [professor_id], references: [id])
+  professor_id String?
+  admin_id     String?
+  admin        Admin?     @relation(fields: [admin_id], references: [id])
+  ipAddress    String?
+  device       String?
+  expires_at   DateTime?
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+}
+
+model Exam {
+  id           String    @id @default(uuid())
+  professor_id String
+  professor    Professor @relation(fields: [professor_id], references: [id])
+  course_id    String
+  course       Course    @relation(fields: [course_id], references: [id])
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+}
+
+model AttendedExam {
+  id           String    @id @default(uuid())
+  student_id   String
+  student      Student   @relation(fields: [student_id], references: [id])
+  professor_id String
+  professor    Professor @relation(fields: [professor_id], references: [id])
+  course_id    String
+  course       Course    @relation(fields: [course_id], references: [id])
+  grade        Grades?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+}

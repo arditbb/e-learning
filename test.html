@@ -1,0 +1,67 @@
+html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Authentication</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <h1>Student Authentication</h1>
+    <form id="loginForm">
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email" required />
+      <br />
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required />
+      <br />
+      <button type="submit">Login</button>
+    </form>
+    <br />
+    <button id="googleLogin">Login with Google</button>
+    <br />
+    <h2>Metrics</h2>
+    <button id="getMetrics">Get Metrics</button>
+    <div id="metrics"></div>
+
+    <script>
+      const loginForm = document.getElementById('loginForm');
+      const googleLoginButton = document.getElementById('googleLogin');
+      const getMetricsButton = document.getElementById('getMetrics');
+      const metricsDiv = document.getElementById('metrics');
+
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+          const response = await axios.post(
+            'http://localhost:4000/v1/auth/student/login',
+            {
+              email,
+              password,
+            },
+          );
+          console.log(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
+      googleLoginButton.addEventListener('click', () => {
+        window.location.href = 'http://localhost:4000/v1/auth/student/google';
+      });
+
+      getMetricsButton.addEventListener('click', async () => {
+        try {
+          const response = await axios.get('http://localhost:4000/v1/metrics');
+          metricsDiv.innerHTML = JSON.stringify(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    </script>
+  </body>
+</html>
